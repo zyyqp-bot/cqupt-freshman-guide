@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b9d99b">
+<meta name="description" content="重邮新生导引：开着车沿南山走一圈，在八个地点了解报到、宿舍、校园卡、选课、体检、快递和食堂。">
+<title>重邮新生导引 · 南山第一程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23132a21'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' fill='%23d9efa6' font-family='serif'%3E邮%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#list">跳到新生清单</a>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="hud hud-top">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">邮</span>
+    <span class="brand-text"><strong>重邮新生导引</strong><small>在南山，第一次出发</small></span>
+  </div>
+  <div class="hud-actions">
+    <a class="pill map-pill" href="https://gis.cqupt.edu.cn/#/" target="_blank" rel="noopener">校园地图 <span aria-hidden="true">↗</span></a>
+    <button class="pill" id="open-list" type="button">直接看清单</button>
+  </div>
+</header>
+
+<div class="hud hud-place" id="hud-place">
+  <span class="hud-label">当前位置</span>
+  <strong id="near-name">校门</strong>
+  <span class="hud-sub" id="near-sub">沿路向前</span>
+</div>
+
+<div class="hud hud-progress">
+  <span class="hud-label">已了解</span>
+  <strong><span id="done-count">0</span><span class="hud-divider">/</span><span id="done-total">7</span></strong>
+</div>
+
+<div class="minimap" id="minimap" aria-hidden="true">
+  <svg viewBox="0 0 200 240" role="presentation">
+    <path class="map-route" id="map-route" d=""></path>
+    <g id="map-stops"></g>
+    <polygon class="map-car" id="map-car" points="0,-7 4.2,5 0,3 -4.2,5"></polygon>
+  </svg>
+  <span class="map-title">南山路</span>
+  <span class="map-north">N</span>
+</div>
+
+<div class="prompt" id="prompt" hidden>
+  <button id="prompt-btn" type="button"><span class="key">E</span><span id="prompt-text">查看</span></button>
+</div>
+
+<div class="drive-hint" id="drive-hint"><span>W A S D</span> 驾驶 · <span>E</span> 查看 · <span>R</span> 回校门 · <span>Esc</span> 返回</div>
+
+<div class="joystick" id="joystick" hidden>
+  <span class="joystick-hint">拖动驾驶</span>
+  <div class="joystick-base" aria-hidden="true"><div class="joystick-knob" id="joystick-knob"></div></div>
+</div>
+
+<section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" aria-hidden="true">
+  <button class="panel-close" id="panel-close" type="button" aria-label="关闭">×</button>
+  <div class="panel-inner">
+    <div class="panel-scroll">
+      <p class="panel-meta"><span id="panel-index">01 / 07</span><span id="panel-zone"></span></p>
+      <h2 id="panel-title">报到大厅</h2>
+      <p class="panel-intro" id="panel-intro"></p>
+      <ol class="steps" id="panel-steps"></ol>
+      <p class="panel-note" id="panel-note"></p>
+    </div>
+    <button class="panel-back" id="panel-back" type="button">继续探索<span aria-hidden="true">→</span></button>
+  </div>
+</section>
+
+<div class="list-overlay" id="list" role="dialog" aria-modal="true" aria-labelledby="list-title" aria-hidden="true">
+  <div class="list-top">
+    <div>
+      <h2 id="list-title">新生清单</h2>
+      <p>不用按路线走，想去哪一站就点哪一站。</p>
+    </div>
+    <button class="panel-close list-close" id="list-close" type="button" aria-label="关闭清单">×</button>
+  </div>
+  <div class="card-grid" id="card-grid"></div>
+  <div class="list-foot">
+    <div class="list-foot-actions">
+      <button id="reset-car" type="button">回到校门</button>
+      <a class="list-academic list-map" href="https://gis.cqupt.edu.cn/#/" target="_blank" rel="noopener">校园地图 <span aria-hidden="true">↗</span></a>
+      <a class="list-academic" href="https://jwzx.cqupt.edu.cn/indexold.php" rel="noopener">去重邮教务在线 <span aria-hidden="true">↗</span></a>
+    </div>
+    <p>非官方演示 · 内容依据公开迎新资料整理，具体流程、地点与时间以学校官方通知、辅导员及教务系统为准。</p>
+  </div>
+</div>
+
+<div class="ending" id="ending" role="dialog" aria-modal="true" aria-labelledby="ending-title" aria-hidden="true">
+  <div class="ending-card">
+    <p class="ending-meta"><span>南山第一程 · 终点</span><span id="ending-progress">已了解 0 / 7</span></p>
+    <h2 id="ending-title">路走到这里，<br>接下来，交给教务在线。</h2>
+    <p class="ending-copy">报到、宿舍、校园卡、选课、体检、快递和食堂，都在这条路上说过了。课表、选课、成绩和培养方案，去学校的教务系统继续。部分校内系统需要校园网或 VPN。</p>
+    <a class="ending-primary" id="ending-link" href="https://jwzx.cqupt.edu.cn/indexold.php" rel="noopener">进入重邮教务在线 <span aria-hidden="true">↗</span></a>
+    <button class="ending-secondary" id="ending-stay" type="button">先不跳转，再逛一圈</button>
+    <p class="ending-count" id="ending-count">3 秒后自动跳转</p>
+    <a class="ending-alt" href="https://jw.cqupt.edu.cn/" rel="noopener">或访问教务处官网 <span aria-hidden="true">↗</span></a>
+  </div>
+</div>
+
+<div class="loader" id="loader">
+  <span class="loader-mark" aria-hidden="true">邮</span>
+  <p>正在点亮南山</p>
+  <div class="loader-line"><span></span></div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<noscript><p class="noscript">这个页面需要 JavaScript 来驾驶校园，但新生清单的文字内容仍可向学校官方渠道核对。</p></noscript>
+
+<script src="vendor/three.r128.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
